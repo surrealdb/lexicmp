@@ -22,14 +22,12 @@
 //! To sort strings or paths, you can use the `StringSort` or `PathSort` trait:
 //!
 //! ```rust
-//! # #[cfg(feature = "std")] {
-//! use lexical_sort::{StringSort, natural_lexical_cmp};
+//! use lexicmp::{StringSort, natural_lexical_cmp};
 //!
 //! let mut strings = vec!["ß", "é", "100", "hello", "world", "50", ".", "B!"];
 //! strings.string_sort_unstable(natural_lexical_cmp);
 //!
 //! assert_eq!(&strings, &[".", "50", "100", "B!", "é", "hello", "ß", "world"]);
-//! # }
 //! ```
 //!
 //! There are eight comparison functions:
@@ -47,8 +45,6 @@
 //!
 //! Note that only the functions that sort lexicographically are case insensitive.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 mod cmp;
 pub mod iter;
 
@@ -58,8 +54,6 @@ pub use cmp::{
 };
 
 use core::cmp::Ordering;
-#[cfg(feature = "std")]
-use std::path::Path;
 
 /// A trait to sort strings. This is a convenient wrapper for the standard library sort functions.
 ///
@@ -68,13 +62,13 @@ use std::path::Path;
 /// ## Example
 ///
 /// ```rust
-/// use lexical_sort::StringSort;
+/// use lexicmp::StringSort;
 ///
 /// let slice = &mut ["Hello", " world", "!"];
-/// slice.string_sort_unstable(lexical_sort::natural_lexical_cmp);
+/// slice.string_sort_unstable(lexicmp::natural_lexical_cmp);
 ///
 /// // or trim the strings before comparing:
-/// slice.string_sort_unstable_by(lexical_sort::natural_lexical_cmp, str::trim_start);
+/// slice.string_sort_unstable_by(lexicmp::natural_lexical_cmp, str::trim_start);
 /// ```
 ///
 /// If you want to sort file paths or OsStrings, use the `PathSort` trait instead.
@@ -87,10 +81,10 @@ pub trait StringSort {
     /// ## Example
     ///
     /// ```rust
-    /// use lexical_sort::StringSort;
+    /// use lexicmp::StringSort;
     ///
     /// let slice = &mut ["Lorem", "ipsum", "dolor", "sit", "amet"];
-    /// slice.string_sort(lexical_sort::natural_lexical_cmp);
+    /// slice.string_sort(lexicmp::natural_lexical_cmp);
     ///
     /// assert_eq!(slice, &["amet", "dolor", "ipsum", "Lorem", "sit"]);
     /// ```
@@ -104,10 +98,10 @@ pub trait StringSort {
     /// ## Example
     ///
     /// ```rust
-    /// use lexical_sort::StringSort;
+    /// use lexicmp::StringSort;
     ///
     /// let slice = &mut ["The", "quick", "brown", "fox"];
-    /// slice.string_sort_unstable(lexical_sort::natural_lexical_cmp);
+    /// slice.string_sort_unstable(lexicmp::natural_lexical_cmp);
     ///
     /// assert_eq!(slice, &["brown", "fox", "quick", "The"]);
     /// ```
@@ -125,10 +119,10 @@ pub trait StringSort {
     /// ## Example
     ///
     /// ```rust
-    /// use lexical_sort::StringSort;
+    /// use lexicmp::StringSort;
     ///
     /// let slice = &mut ["Eeny", " meeny", " miny", " moe"];
-    /// slice.string_sort_by(lexical_sort::natural_lexical_cmp, str::trim_start);
+    /// slice.string_sort_by(lexicmp::natural_lexical_cmp, str::trim_start);
     ///
     /// assert_eq!(slice, &["Eeny", " meeny", " miny", " moe"]);
     /// ```
@@ -149,10 +143,10 @@ pub trait StringSort {
     /// ## Example
     ///
     /// ```rust
-    /// use lexical_sort::StringSort;
+    /// use lexicmp::StringSort;
     ///
     /// let slice = &mut ["Eeny", " meeny", " miny", " moe"];
-    /// slice.string_sort_unstable_by(lexical_sort::natural_lexical_cmp, str::trim_start);
+    /// slice.string_sort_unstable_by(lexicmp::natural_lexical_cmp, str::trim_start);
     ///
     /// assert_eq!(slice, &["Eeny", " meeny", " miny", " moe"]);
     /// ```
@@ -188,167 +182,6 @@ impl<A: AsRef<str>> StringSort for [A] {
     }
 }
 
-/// A trait to sort paths and OsStrings. This is a convenient wrapper for the standard library
-/// sort functions.
-///
-/// This trait is implemented for all slices whose inner type implements `AsRef<Path>`.
-///
-/// ## Example
-///
-/// ```rust
-/// # use std::path::Path;
-/// use lexical_sort::PathSort;
-///
-/// let slice: &mut [&Path] = &mut ["Hello".as_ref(), " world".as_ref(), "!".as_ref()];
-/// slice.path_sort_unstable(lexical_sort::natural_lexical_cmp);
-///
-/// // or trim the strings before comparing:
-/// slice.path_sort_unstable_by(lexical_sort::natural_lexical_cmp, str::trim_start);
-/// ```
-///
-/// If you want to sort regular strings, use the `StringSort` trait instead.
-#[cfg(feature = "std")]
-pub trait PathSort {
-    /// Sorts the items using the provided comparison function.
-    ///
-    /// **This is a stable sort, which is often not required**.
-    /// You can use `path_sort_unstable` instead.
-    ///
-    /// ## Example
-    ///
-    /// ```rust
-    /// # use std::path::Path;
-    /// # fn paths<'a>(s: &'a[&'a str]) -> Vec<&'a Path> { s.iter().map(Path::new).collect() }
-    /// use lexical_sort::PathSort;
-    ///
-    /// let mut vec: Vec<&Path> = paths(&["Lorem", "ipsum", "dolor", "sit", "amet"]);
-    /// vec.path_sort(lexical_sort::natural_lexical_cmp);
-    ///
-    /// assert_eq!(vec, paths(&["amet", "dolor", "ipsum", "Lorem", "sit"]));
-    /// ```
-    fn path_sort(&mut self, comparator: impl FnMut(&str, &str) -> Ordering);
-
-    /// Sorts the items using the provided comparison function.
-    ///
-    /// This sort is unstable: The original order of equal strings is not preserved.
-    /// It is slightly more efficient than the stable alternative.
-    ///
-    /// ## Example
-    ///
-    /// ```rust
-    /// # use std::path::Path;
-    /// # fn paths<'a>(s: &'a[&'a str]) -> Vec<&'a Path> { s.iter().map(Path::new).collect() }
-    /// use lexical_sort::PathSort;
-    ///
-    /// let mut vec: Vec<&Path> = paths(&["The", "quick", "brown", "fox"]);
-    /// vec.path_sort_unstable(lexical_sort::natural_lexical_cmp);
-    ///
-    /// assert_eq!(vec, paths(&["brown", "fox", "quick", "The"]));
-    /// ```
-    fn path_sort_unstable(&mut self, comparator: impl FnMut(&str, &str) -> Ordering);
-
-    /// Sorts the items using the provided comparison function and another function that is
-    /// applied to each string before the comparison. This can be used to trim the strings.
-    ///
-    /// If you do anything more complicated than trimming, you'll likely run into lifetime problems.
-    /// In this case you should use `[_]::sort_by()` directly. You'll need to call
-    /// `to_string_lossy()` or `to_str().unwrap()` to convert a `Path` or `OsStr` to a `&str` first.
-    ///
-    /// **This is a stable sort, which is often not required**.
-    /// You can use `path_sort_unstable` instead.
-    ///
-    /// ## Example
-    ///
-    /// ```rust
-    /// # use std::path::Path;
-    /// # fn paths<'a>(s: &'a[&'a str]) -> Vec<&'a Path> { s.iter().map(Path::new).collect() }
-    /// use lexical_sort::PathSort;
-    ///
-    /// let mut vec: Vec<&Path> = paths(&["Eeny", " meeny", " miny", " moe"]);
-    /// vec.path_sort_by(lexical_sort::natural_lexical_cmp, str::trim_start);
-    ///
-    /// assert_eq!(vec, paths(&["Eeny", " meeny", " miny", " moe"]));
-    /// ```
-    fn path_sort_by<Cmp, Map>(&mut self, cmp: Cmp, map: Map)
-    where
-        Cmp: FnMut(&str, &str) -> Ordering,
-        Map: FnMut(&str) -> &str;
-
-    /// Sorts the items using the provided comparison function and another function that is
-    /// applied to each string before the comparison. This can be used to trim the strings.
-    ///
-    /// If you do anything more complicated than trimming, you'll likely run into lifetime problems.
-    /// In this case you should use `[_]::sort_by()` directly. You'll need to call
-    /// `to_string_lossy()` or `to_str().unwrap()` to convert a `Path` or `OsStr` to a `&str` first.
-    ///
-    /// This sort is unstable: The original order of equal strings is not preserved.
-    /// It is slightly more efficient than the stable alternative.
-    ///
-    /// ## Example
-    ///
-    /// ```rust
-    /// # use std::path::Path;
-    /// # fn paths<'a>(s: &'a[&'a str]) -> Vec<&'a Path> { s.iter().map(Path::new).collect() }
-    /// use lexical_sort::PathSort;
-    ///
-    /// let mut vec: Vec<&Path> = paths(&["Eeny", " meeny", " miny", " moe"]);
-    /// vec.path_sort_by(lexical_sort::natural_lexical_cmp, str::trim_start);
-    ///
-    /// assert_eq!(vec, paths(&["Eeny", " meeny", " miny", " moe"]));
-    /// ```
-    fn path_sort_unstable_by<Cmp, Map>(&mut self, cmp: Cmp, map: Map)
-    where
-        Cmp: FnMut(&str, &str) -> Ordering,
-        Map: FnMut(&str) -> &str;
-}
-
-#[cfg(feature = "std")]
-impl<A: AsRef<Path>> PathSort for [A] {
-    fn path_sort(&mut self, mut cmp: impl FnMut(&str, &str) -> Ordering) {
-        self.sort_by(|lhs, rhs| {
-            cmp(
-                &lhs.as_ref().to_string_lossy(),
-                &rhs.as_ref().to_string_lossy(),
-            )
-        });
-    }
-
-    fn path_sort_unstable(&mut self, mut cmp: impl FnMut(&str, &str) -> Ordering) {
-        self.sort_unstable_by(|lhs, rhs| {
-            cmp(
-                &lhs.as_ref().to_string_lossy(),
-                &rhs.as_ref().to_string_lossy(),
-            )
-        });
-    }
-
-    fn path_sort_by<Cmp, Map>(&mut self, mut cmp: Cmp, mut map: Map)
-    where
-        Cmp: FnMut(&str, &str) -> Ordering,
-        Map: FnMut(&str) -> &str,
-    {
-        self.sort_by(|lhs, rhs| {
-            cmp(
-                map(&lhs.as_ref().to_string_lossy()),
-                map(&rhs.as_ref().to_string_lossy()),
-            )
-        });
-    }
-
-    fn path_sort_unstable_by<Cmp, Map>(&mut self, mut cmp: Cmp, mut map: Map)
-    where
-        Cmp: FnMut(&str, &str) -> Ordering,
-        Map: FnMut(&str) -> &str,
-    {
-        self.sort_unstable_by(|lhs, rhs| {
-            cmp(
-                map(&lhs.as_ref().to_string_lossy()),
-                map(&rhs.as_ref().to_string_lossy()),
-            )
-        });
-    }
-}
-
 #[test]
 fn test_sort() {
     macro_rules! assert_lexically_sorted {
@@ -373,13 +206,4 @@ fn test_sort() {
 
     assert_lexically_sorted!(string_sort, strings, natural = false);
     assert_lexically_sorted!(string_sort, strings_nat, natural = true);
-
-    #[cfg(feature = "std")]
-    {
-        let paths: Vec<&Path> = strings.iter().map(|s| Path::new(s)).collect();
-        let paths_nat: Vec<&Path> = strings_nat.iter().map(|s| Path::new(s)).collect();
-
-        assert_lexically_sorted!(path_sort, paths, natural = false);
-        assert_lexically_sorted!(path_sort, paths_nat, natural = true);
-    }
 }

@@ -177,7 +177,6 @@ pub fn iterate_lexical_only_alnum(s: &'_ str) -> impl Iterator<Item = char> + '_
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn test_iteration() {
     fn it(s: &'static str) -> String {
         iterate_lexical(s).collect()
@@ -194,7 +193,6 @@ fn test_iteration() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn test_iteration_only_alnum() {
     fn it(s: &'static str) -> String {
         iterate_lexical_only_alnum(s).collect()
