@@ -2,7 +2,7 @@
 name = "lexicmp"
 publish = true
 edition = "2021"
-version = "0.1.0"
+version = "0.2.0"
 readme = "README.md"
 authors = ["Tobie Morgan Hitchcock <tobie@surrealdb.com>"]
 description = "Library for comparing and sorting strings lexicographically and naturally"
