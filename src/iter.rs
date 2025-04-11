@@ -7,8 +7,8 @@
 //! The iterators don't allocate memory on the heap. I haven't benchmarked it,
 //! but I believe that it's quite efficient.
 
-use any_ascii::any_ascii_char;
 use core::iter::FusedIterator;
+use deunicode::deunicode_char;
 
 /// An iterator over one `char`, converted to lowercase
 /// and transliterated to ASCII, if it is an alphanumeric character
@@ -127,9 +127,9 @@ pub fn iterate_lexical_char(c: char) -> LexicalChar {
     if c.is_ascii() {
         LexicalChar::from_char(c.to_ascii_lowercase())
     } else if c.is_alphanumeric() {
-        match any_ascii_char(c) {
-            s if s.is_empty() => LexicalChar::from_char(c),
-            s => LexicalChar::from_slice(s.as_bytes()),
+        match deunicode_char(c) {
+            Some(s) => LexicalChar::from_slice(s.trim().as_bytes()),
+            None => LexicalChar::from_char(c),
         }
     } else if combining_diacritical(&c) {
         LexicalChar::empty()
@@ -149,9 +149,9 @@ pub fn iterate_lexical_char_only_alnum(c: char) -> LexicalChar {
             LexicalChar::empty()
         }
     } else if c.is_alphanumeric() {
-        match any_ascii_char(c) {
-            s if s.is_empty() => LexicalChar::from_char(c),
-            s => LexicalChar::from_slice(s.as_bytes()),
+        match deunicode_char(c) {
+            Some(s) => LexicalChar::from_slice(s.trim().as_bytes()),
+            None => LexicalChar::from_char(c),
         }
     } else {
         LexicalChar::empty()

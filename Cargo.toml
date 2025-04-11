@@ -13,4 +13,4 @@ categories = ["algorithms", "text-processing", "internationalization"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-any_ascii = "0.3.2"
+deunicode = "1.6.1"
